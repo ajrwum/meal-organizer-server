@@ -24,5 +24,6 @@ app.use(
 
 app.use("/", require("./routes/index"));
 app.use("/api/auth", require("./routes/auth"));
+app.use('/foods', require('./routes/foods'));
 
 module.exports = app;
