@@ -36,6 +36,7 @@ app.use(
   })
 );
 
+<<<<<<< HEAD
 app.use(
   cors({
     credentials: true,
@@ -51,5 +52,10 @@ app.use('/', require('./routes/index'));
 app.use('/api/auth', require('./routes/auth'));
 
 app.use('/meals', require('./routes/meals'));
+=======
+app.use("/", require("./routes/index"));
+app.use("/api/auth", require("./routes/auth"));
+app.use('/foods', require('./routes/foods'));
+>>>>>>> doums
 
 module.exports = app;
