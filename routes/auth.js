@@ -1,10 +1,11 @@
-const router = require("express").Router();
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const mongoose = require("mongoose");
-const isAuthenticated = require("../middlewares/jwt.middleware");
-const User = require("../models/User.model");
-const saltRounds = 10;
+const router = require('express').Router();
+const bcrypt = require('bcryptjs');
+const passport = require('passport');
+
+const mongoose = require('mongoose');
+const userModel = require('../models/User.model');
+
+const minPasswordLength = 4;
 
 /**
  *
@@ -12,107 +13,113 @@ const saltRounds = 10;
  *
  */
 
-router.post("/signup", async (req, res, next) => {
-	const { name, email, password } = req.body;
-	if (email === "" || name === "" || password === "") {
-		res
-			.status(400)
-			.json({ message: "I need some informations to work with here!" });
-	}
+router.post('/signup', async (req, res, next) => {
+  // ! To use only if you want to enforce strong password (not during dev-time)
 
-	// ! To use only if you want to enforce strong password (not during dev-time)
+  // const regex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/;
 
-	// const regex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/;
+  // if (!regex.test(password)) {
+  // 	return res
+  // 		.status(400)
+  // 		.json({
+  // 			message:
+  // 				"Password needs to have at least 8 chars and must contain at least one number, one lowercase and one uppercase letter.",
+  // 		});
+  // }
 
-	// if (!regex.test(password)) {
-	// 	return res
-	// 		.status(400)
-	// 		.json({
-	// 			message:
-	// 				"Password needs to have at least 8 chars and must contain at least one number, one lowercase and one uppercase letter.",
-	// 		});
-	// }
+  // console.log("file ?", req.file);
+  // console.log(req.body);
+  var errorMsg = '';
+  const { username, password, email } = req.body;
+  // @todo : best if email validation here or check with a regex in the User model
+  if (!password || !email) errorMsg += 'Provide email and password.\n';
 
-	try {
-		const foundUser = await User.findOne({ email });
-		if (foundUser) {
-			res
-				.status(400)
-				.json({ message: "There's another one of you, somewhere." });
-			return;
-		}
-		const salt = bcrypt.genSaltSync(saltRounds);
-		const hashedPass = bcrypt.hashSync(password, salt);
+  if (password.length < minPasswordLength)
+    errorMsg += `Please make your password at least ${minPasswordLength} characters.`;
 
-		const createdUser = await User.create({
-			name,
-			email,
-			password: hashedPass,
-		});
+  if (errorMsg) return res.status(403).json(errorMsg); // 403	Forbidden
 
-		const user = createdUser.toObject();
-		delete user.password;
-		// ! Sending the user as json to the client
-		res.status(201).json({ user });
-	} catch (error) {
-		console.log(error);
-		if (error instanceof mongoose.Error.ValidationError) {
-			return res.status(400).json({ message: error.message });
-		}
-		res.status(500).json({ message: "Sweet, sweet 500." });
-	}
+  const salt = bcrypt.genSaltSync(10);
+  // more on encryption : https://en.wikipedia.org/wiki/Salt_(cryptography)
+  const hashPass = bcrypt.hashSync(password, salt);
+
+  const newUser = {
+    username,
+    email,
+    password: hashPass,
+  };
+
+  // check if an avatar FILE has been posted
+  if (req.file) newUser.avatar = req.file.secure_url;
+
+  userModel
+    .create(newUser)
+    .then((newUserFromDB) => {
+      res.status(200).json({ msg: 'signup ok' });
+    })
+    .catch((err) => {
+      console.log('signup error', err);
+      next(err);
+    });
 });
 
-router.post("/signin", async (req, res, next) => {
-	const { email, password } = req.body;
-	if (email === "" || password === "") {
-		res
-			.status(400)
-			.json({ message: "I need some informations to work with here!" });
-	}
-	try {
-		const foundUser = await User.findOne({ email });
-		if (!foundUser) {
-			res.status.apply(401).json({ message: "You're not yourself." });
-			return;
-		}
-		const goodPass = bcrypt.compareSync(password, foundUser.password);
-		if (goodPass) {
-			const user = foundUser.toObject();
-			delete user.password;
+router.post('/signin', async (req, res, next) => {
+  passport.authenticate('local', (err, user, failureDetails) => {
+    if (err || !user) return res.status(403).json('invalid user infos'); // 403 : Forbidden
 
-			/**
-			 * Sign method allow you to create the token.
-			 *
-			 * ---
-			 *
-			 * - First argument: user, should be an object. It is our payload !
-			 * - Second argument: A-really-long-random-string...
-			 * - Third argument: Options...
-			 */
+    /**
+     * req.Login is a passport method
+     * check the doc here : http://www.passportjs.org/docs/login/
+     */
+    req.login(user, function (err) {
+      /* doc says: When the login operation completes, user will be assigned to req.user. */
+      if (err) {
+        return res.json({ message: 'Something went wrong logging in' });
+      }
 
-			const authToken = jwt.sign(user, process.env.TOKEN_SECRET, {
-				algorithm: "HS256",
-				expiresIn: "2d",
-			});
-
-			//! Sending the authToken to the client !
-
-			res.status(200).json({ authToken });
-		} else {
-			res.status(401).json("Can you check your typos ?");
-		}
-	} catch (error) {
-		console.log(error);
-		res
-			.status(500)
-			.json({ message: "Oh noes ! Something went terribly wrong !" });
-	}
+      // We are now logged in
+      // You may find usefull to send some other infos
+      // dont send sensitive informations back to the client
+      // let's choose the exposed user below
+      const { _id, username, email, favorites, avatar, role } = user;
+      // and only expose non-sensitive inofrmations to the client's state
+      // console.log("user", user);
+      res.status(200).json({
+        currentUser: {
+          _id,
+          username,
+          email,
+          avatar,
+          role,
+          favorites,
+        },
+      });
+      next();
+    });
+  })(req, res, next); // IIFE (module) pattern here (see passport documentation)
 });
 
-router.get("/me", isAuthenticated, (req, res, next) => {
-	// console.log("req payload", req.payload);
-	res.status(200).json(req.payload);
+router.post('/signout', (req, res, next) => {
+  req.logout(); // utility function provided by passport
+  res.json({ message: 'Success' });
+});
+
+router.get('/is-loggedin', (req, res, next) => {
+  if (req.isAuthenticated()) {
+    // method provided by passport
+    const { _id, username, favorites, email, avatar, role } = req.user;
+    return res.status(200).json({
+      currentUser: {
+        _id,
+        username,
+        email,
+        avatar,
+        favorites,
+        role,
+      },
+    });
+  }
+  res.status(403).json('Unauthorized');
 });
 
 module.exports = router;
