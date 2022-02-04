@@ -4,7 +4,13 @@
 	"private": true,
 	"scripts": {
 		"start": "node ./bin/www",
-		"dev": "nodemon ./bin/www"
+		"dev": "nodemon ./bin/www",
+		"seed:user": "node ./bin/seed/seed.user.js",
+		"seed:category": "node ./bin/seed/seed.category.js",
+		"seed:food": "node ./bin/seed/seed.food.js",
+		"seed:mealtype": "node ./bin/seed/seed.mealtype.js",
+		"seed:meal": "node ./bin/seed/seed.meal.js",
+		"seed:all": "npm run seed:user && npm run seed:category && npm run seed:food && npm run seed:mealtype && npm run seed:meal"
 	},
 	"dependencies": {
 		"bcryptjs": "^2.4.3",

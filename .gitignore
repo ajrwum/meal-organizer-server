@@ -62,3 +62,6 @@ typings/
 
 # for dev purpose
 package-lock.json
+
+# Mac files
+.DS_Store
