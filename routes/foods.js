@@ -1,12 +1,20 @@
 const router = require('express').Router();
 const protectRoute = require("../middlewares/protectRoute");
-const Food = require('../../meal-organizer-server/models/Food.model');
+const Food = require('../models/Food.model');
+const Category = require('../models/Category.model');
 
 
 // All routes are prefixed by /foods !
 
+// Get all categories when creating a food
+router.get('/categories', (req, res, next) => {
+   Category.find()
+    .then(dbRes => res.status(200).json(dbRes))
+    .catch(err => next(err));
+});
+
+
 router.get("/", (req, res, next) => {
-    console.log(req.user);
 	Food.find({ user: req.user._id })
         .then(dbRes => {
             res.status(200).json(dbRes);
@@ -34,6 +42,7 @@ router.get('/food/:id', async (req, res, next) => {
     }
 });
 
+
 // Update a specific food for connected user
 router.patch('/food/:id', (req, res, next) => {
     Food.findByIdAndUpdate(req.params.id, req.body)
@@ -50,6 +59,12 @@ router.delete('/food/:id', (req, res, next) => {
             res.status(200).json(deleteFood);
         })
         .catch(next);
+});
+
+router.get('/:categoryId', (req, res, next) => {
+    Food.find({$and: [{user: req.user._id}, {category: req.params.categoryId}]})
+        .then(dbRes => res.status(200).json(dbRes))
+        .catch(err => next(err));
 });
 
 module.exports = router;
