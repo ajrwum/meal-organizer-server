@@ -12,4 +12,4 @@ const categorySchema = new Schema({
   },
 });
 
-module.exports = model('category', categorySchema);
+module.exports = model('Category', categorySchema);

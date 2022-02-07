@@ -99,7 +99,7 @@ router.post('/signin', async (req, res, next) => {
   })(req, res, next); // IIFE (module) pattern here (see passport documentation)
 });
 
-router.post('/signout', (req, res, next) => {
+router.get('/signout', (req, res, next) => {
   req.logout(); // utility function provided by passport
   res.json({ message: 'Success' });
 });
