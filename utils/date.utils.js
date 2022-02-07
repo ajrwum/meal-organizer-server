@@ -1,10 +1,30 @@
+const WEEKDAYS_EN = [
+  'Sunday',
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+const WEEKDAYS_FR = [
+  'Dimanche',
+  'Lundi',
+  'Mardi',
+  'Mercredi',
+  'Jeudi',
+  'Vendredi',
+  'Samedi',
+];
+
 /**
- * Function used to get a clean date from the date passed in argument to use as a boundary for serach on dates in Db
- *
- * @param {*} date
- * @returns the same date set to the beginning of the day
+ * Function used to get a clean date from the date passed in argument to use as a boundary for search on dates in Db
+ * @param {Date} date - a date, set at any time of the day
+ * @returns {Date} date - the same date, but set at the very beginning of the day
  */
-function getCleanDate(date) {
+function getCleanDateFromDate(date) {
+  // console.log('--- getCleanDateFromDate - date', date);
+
   // get the string "yyyy-mm-dd" from date
   const strDate = date.toISOString().slice(0, 10);
 
@@ -12,4 +32,77 @@ function getCleanDate(date) {
   return new Date(strDate);
 }
 
-module.exports = { getCleanDate };
+/**
+ * Function used to get a clean date from the date passed in argument to use as a boundary for search on dates in Db
+ * @param {string} stringDate - a date as string, set at any time of the day
+ * @returns {Date} date - the same date, but set at the very beginning of the day
+ */
+function getCleanDateFromStringDate(stringDate) {
+  // console.log('--- getCleanDateFromStringDate - stringDate', stringDate);
+
+  // get the string "yyyy-mm-dd" from date
+  const strDate = stringDate.slice(0, 10);
+
+  // return the date set to the beginning of the day
+  return new Date(strDate);
+}
+
+function getMondayBeforeOrEqual(date) {
+  // console.log('--- getMondayBeforeOrEqual - date', date);
+
+  let givenDate;
+  if (typeof date === 'string') givenDate = getCleanDateFromStringDate(date);
+  else if (date instanceof Date) givenDate = getCleanDateFromDate(date);
+  else return -1;
+
+  const givenDateWeekday = givenDate.getDay();
+  const offset =
+    (WEEKDAYS_EN.indexOf('Monday') - givenDateWeekday - WEEKDAYS_EN.length) %
+    WEEKDAYS_EN.length;
+  // console.log('offset', offset);
+
+  let mondayDate = new Date(givenDate);
+  mondayDate.setDate(givenDate.getDate() + offset);
+
+  // console.log('mondayDate', mondayDate);
+  return mondayDate;
+}
+
+function getSundayAfterOrEqual(date) {
+  // console.log('--- getSundayAfterOrEqual - date', date);
+
+  let givenDate;
+  if (typeof date === 'string') givenDate = getCleanDateFromStringDate(date);
+  else if (date instanceof Date) givenDate = getCleanDateFromDate(date);
+  else return -1;
+
+  const givenDateWeekday = givenDate.getDay();
+  const offset =
+    (WEEKDAYS_EN.indexOf('Sunday') - givenDateWeekday + WEEKDAYS_EN.length) %
+    WEEKDAYS_EN.length;
+  // console.log('offset', offset);
+
+  let sundayDate = new Date(givenDate);
+  sundayDate.setDate(givenDate.getDate() + offset);
+  // finally, set it just 1ms before the day after
+  sundayDate.setUTCHours(23, 59, 59, 999);
+
+  // console.log('sundayDate', sundayDate);
+  return sundayDate;
+}
+
+function getDateFilterFromMonToSun(date) {
+  console.log('--- getDateFilterFromMonToSun - date', date);
+
+  const mondayDate = getMondayBeforeOrEqual(date);
+  const sundayDate = getSundayAfterOrEqual(date);
+
+  let dateFilter = null;
+  if (mondayDate !== -1 && sundayDate !== -1)
+    dateFilter = { date: { $gte: mondayDate, $lt: sundayDate } };
+  return dateFilter;
+}
+
+module.exports = {
+  getDateFilterFromMonToSun,
+};

@@ -81,7 +81,7 @@ router.post('/signin', async (req, res, next) => {
       // You may find usefull to send some other infos
       // dont send sensitive informations back to the client
       // let's choose the exposed user below
-      const { _id, name, email, favorites, avatar, role } = user;
+      const { _id, name, email } = user;
       // and only expose non-sensitive inofrmations to the client's state
       // console.log("user", user);
       res.status(200).json({
@@ -89,9 +89,6 @@ router.post('/signin', async (req, res, next) => {
           _id,
           name,
           email,
-          avatar,
-          role,
-          favorites,
         },
       });
       next();
@@ -107,15 +104,12 @@ router.get('/signout', (req, res, next) => {
 router.get('/is-loggedin', (req, res, next) => {
   if (req.isAuthenticated()) {
     // method provided by passport
-    const { _id, name, favorites, email, avatar, role } = req.user;
+    const { _id, name, email } = req.user;
     return res.status(200).json({
       currentUser: {
         _id,
         name,
         email,
-        avatar,
-        favorites,
-        role,
       },
     });
   }

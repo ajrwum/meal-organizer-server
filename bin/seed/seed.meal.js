@@ -281,19 +281,19 @@ const meals = [
     baseType: 'Déjeuner',
     baseFoods: ['Pâtes', 'Camembert'],
     user: null,
-    date: new Date('2022-01-21'),
+    date: new Date('2022-02-21'),
   },
   {
     baseType: 'Dîner',
     baseFoods: ['Carottes râpées', 'Saumon bio'],
     user: null,
-    date: new Date('2022-01-21'),
+    date: new Date('2022-02-21'),
   },
   {
     baseType: 'Déjeuner',
     baseFoods: ['Pâtes', 'Camembert'],
     user: null,
-    date: new Date('2022-01-22'),
+    date: new Date('2022-02-22'),
   },
 ];
 
