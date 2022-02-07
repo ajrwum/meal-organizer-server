@@ -30,7 +30,7 @@ router.post('/signup', async (req, res, next) => {
   // console.log("file ?", req.file);
   // console.log(req.body);
   var errorMsg = '';
-  const { username, password, email } = req.body;
+  const { name, password, email } = req.body;
   // @todo : best if email validation here or check with a regex in the User model
   if (!password || !email) errorMsg += 'Provide email and password.\n';
 
@@ -44,7 +44,7 @@ router.post('/signup', async (req, res, next) => {
   const hashPass = bcrypt.hashSync(password, salt);
 
   const newUser = {
-    username,
+    name,
     email,
     password: hashPass,
   };
@@ -81,13 +81,13 @@ router.post('/signin', async (req, res, next) => {
       // You may find usefull to send some other infos
       // dont send sensitive informations back to the client
       // let's choose the exposed user below
-      const { _id, username, email, favorites, avatar, role } = user;
+      const { _id, name, email, favorites, avatar, role } = user;
       // and only expose non-sensitive inofrmations to the client's state
       // console.log("user", user);
       res.status(200).json({
         currentUser: {
           _id,
-          username,
+          name,
           email,
           avatar,
           role,
@@ -99,7 +99,7 @@ router.post('/signin', async (req, res, next) => {
   })(req, res, next); // IIFE (module) pattern here (see passport documentation)
 });
 
-router.post('/signout', (req, res, next) => {
+router.get('/signout', (req, res, next) => {
   req.logout(); // utility function provided by passport
   res.json({ message: 'Success' });
 });
@@ -107,11 +107,11 @@ router.post('/signout', (req, res, next) => {
 router.get('/is-loggedin', (req, res, next) => {
   if (req.isAuthenticated()) {
     // method provided by passport
-    const { _id, username, favorites, email, avatar, role } = req.user;
+    const { _id, name, favorites, email, avatar, role } = req.user;
     return res.status(200).json({
       currentUser: {
         _id,
-        username,
+        name,
         email,
         avatar,
         favorites,
