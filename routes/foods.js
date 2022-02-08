@@ -28,7 +28,7 @@ router.get("/", (req, res, next) => {
 // Get all foods for connected user
 router.post("/food", async (req, res, next) => {
     try {
-        const madeFood = await Food.create(req.body);
+        const madeFood = await Food.create({ ...req.body, user: req.user._id.toHexString() });
         res.status(201).json(madeFood);
     } catch (error) {
         next(error);
@@ -61,7 +61,8 @@ router.patch('/food/:id', (req, res, next) => {
 
 // Delete a specific food for connected user
 router.delete('/food/:id', (req, res, next) => {
-    Food.findOneAndDelete(req.params.id)
+    console.log(req.params)
+    Food.findByIdAndDelete(req.params.id)
         .then(deleteFood => {
             res.status(200).json(deleteFood);
         })
