@@ -31,7 +31,10 @@ router.post(
     console.log('--- POST - /meals/meal --- req params:', req.params);
 
     try {
-      const userId = req.user._id;
+      const userId = req.user._id.toHexString();
+      console.log('req.user', req.user);
+      console.log('userId', userId);
+      console.log('req.body', req.body);
       if (!req.body.type || !req.body.foods.length || !req.body.date) {
         throw new Error('Information(s) manquante(s)');
       }
