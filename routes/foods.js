@@ -8,17 +8,18 @@ const Food = require('../models/Food.model');
 
 // Get all categories when creating a food
 router.get('/categories', (req, res, next) => {
-   Category.find()
-    .then(dbRes => res.status(200).json(dbRes))
-    .catch(err => next(err));
+    Category.find()
+        .then(dbRes => res.status(200).json(dbRes))
+        .catch(err => next(err));
 });
 
 
 router.get("/", (req, res, next) => {
-	Food.find({ user: req.user._id })
+    Food.find({ user: req.user._id.toHexString() })
         .populate('category')
         .populate('user')
         .then(dbRes => {
+            console.log("sent data >>>", dbRes);
             res.status(200).json(dbRes);
         })
         .catch(err => console.error(err));
@@ -38,8 +39,8 @@ router.post("/food", async (req, res, next) => {
 router.get('/food/:id', async (req, res, next) => {
     try {
         const oneFood = await Food.findById(req.params.id)
-        .populate('category')
-        .populate('user');
+            .populate('category')
+            .populate('user');
         res.status(200).json(oneFood);
     } catch (error) {
         next(error);
@@ -68,7 +69,7 @@ router.delete('/food/:id', (req, res, next) => {
 });
 
 router.get('/:categoryId', (req, res, next) => {
-    Food.find({$and: [{user: req.user._id}, {category: req.params.categoryId}]})
+    Food.find({ $and: [{ user: req.user._id.toHexString() }, { category: req.params.categoryId }] })
         .populate('category')
         .populate('user')
         .then(dbRes => res.status(200).json(dbRes))
