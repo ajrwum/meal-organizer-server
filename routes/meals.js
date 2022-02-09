@@ -1,6 +1,11 @@
 const router = require('express').Router();
 
-const { getDateFilterFromMonToSun } = require('./../utils/date.utils');
+const {
+  getDayFiltersFromMonToSun,
+  getWeekFilterFromMonToSun,
+  getWeekDates,
+  datesAreOnSameDay,
+} = require('./../utils/date.utils');
 
 const MealTypeModel = require('./../models/MealType.model');
 const MealModel = require('./../models/Meal.model');
@@ -134,24 +139,148 @@ router.delete(
 router.get(
   '/:strDate',
   /* isAuthenticated, */ async (req, res, next) => {
+    console.log('----------');
+    console.log('----------');
+    console.log('----------');
+    console.log('----------');
     console.log('req.user', req.user);
+    const userId = req.user._id.toHexString();
     console.log('--- GET - /meals/:strDate --- req params:', req.params);
 
     try {
-      const dateFilter = getDateFilterFromMonToSun(req.params.strDate);
-      if (dateFilter) {
-        const dbMeals = await MealModel.find({
-          $and: [{ user: req.user._id }, dateFilter],
-        })
-          .populate('type')
-          .populate({
-            path: 'foods',
-            populate: {
-              path: 'category',
-              model: 'Category',
-            },
+      const weekDates = getWeekDates(req.params.strDate);
+      console.log('weekDates', weekDates);
+      const dayFilters = getDayFiltersFromMonToSun(req.params.strDate);
+
+      // const dateFilter = getWeekFilterFromMonToSun(req.params.strDate);
+      const dateFilter = dayFilters[0];
+      // console.log('dateFilter', dateFilter);
+      const mon = new Date('2022-02-04');
+
+      const allMeals = await MealModel.find();
+
+      const dbMealsQuentin = allMeals.filter((meal) => {
+        return datesAreOnSameDay(mon, meal.date);
+      });
+
+      console.log('--- --- ', dbMealsQuentin);
+
+      // const monend = new Date(mon);
+      // monend.setDate(mon.getDate());
+      // monend.setUTCHours(23, 59, 59, 999);
+      // const testF = {
+      //   date: {
+      //     $gte: mon.toISOString(),
+      //     $lt: monend.toISOString(),
+      //   },
+      // };
+      // if (dateFilter) {
+      //   const dbMeals = await MealModel.find(testF)
+      //     .populate('type')
+      //     .populate({
+      //       path: 'foods',
+      //       populate: {
+      //         path: 'category',
+      //         model: 'Category',
+      //       },
+      //     })
+      //     .populate('user');
+      //   console.log('filter', dateFilter);
+      //   console.log('dbMeals', dbMeals);
+      //   res.status(200).json(dbMeals);
+      // } else {
+      //   throw new Error('Format de date invalide');
+      // }
+
+      if (dayFilters.length) {
+        const dbMeals = await Promise.all([
+          MealModel.find({
+            $and: [{ user: userId }, dayFilters[0]],
           })
-          .populate('user');
+            .populate('type')
+            .populate({
+              path: 'foods',
+              populate: {
+                path: 'category',
+                model: 'Category',
+              },
+            })
+            .populate('user'),
+          MealModel.find({
+            $and: [{ user: userId }, dayFilters[1]],
+          })
+            .populate('type')
+            .populate({
+              path: 'foods',
+              populate: {
+                path: 'category',
+                model: 'Category',
+              },
+            })
+            .populate('user'),
+          MealModel.find({
+            $and: [{ user: userId }, dayFilters[2]],
+          })
+            .populate('type')
+            .populate({
+              path: 'foods',
+              populate: {
+                path: 'category',
+                model: 'Category',
+              },
+            })
+            .populate('user'),
+          MealModel.find({
+            $and: [{ user: userId }, dayFilters[3]],
+          })
+            .populate('type')
+            .populate({
+              path: 'foods',
+              populate: {
+                path: 'category',
+                model: 'Category',
+              },
+            })
+            .populate('user'),
+          MealModel.find({
+            $and: [{ user: userId }, dayFilters[4]],
+          })
+            .populate('type')
+            .populate({
+              path: 'foods',
+              populate: {
+                path: 'category',
+                model: 'Category',
+              },
+            })
+            .populate('user'),
+          MealModel.find({
+            $and: [{ user: userId }, dayFilters[5]],
+          })
+            .populate('type')
+            .populate({
+              path: 'foods',
+              populate: {
+                path: 'category',
+                model: 'Category',
+              },
+            })
+            .populate('user'),
+          MealModel.find({
+            $and: [{ user: userId }, dayFilters[6]],
+          })
+            .populate('type')
+            .populate({
+              path: 'foods',
+              populate: {
+                path: 'category',
+                model: 'Category',
+              },
+            })
+            .populate('user'),
+        ]);
+        console.log('********************');
+        console.log('******************** dbMeals Promise.all', dbMeals);
         res.status(200).json(dbMeals);
       } else {
         throw new Error('Format de date invalide');
