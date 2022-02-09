@@ -89,7 +89,7 @@ router.patch(
     console.log('--- PATCH - /meals/meal/:id --- req params:', req.params);
 
     try {
-      const userId = req.user._id;
+      const userId = req.user._id.toHexString();
       if (!req.body.type || !req.body.foods.length || !req.body.date) {
         throw new Error('Information(s) manquante(s)');
       }
@@ -142,55 +142,14 @@ router.get(
     console.log('----------');
     console.log('----------');
     console.log('----------');
-    console.log('----------');
-    console.log('req.user', req.user);
-    const userId = req.user._id.toHexString();
     console.log('--- GET - /meals/:strDate --- req params:', req.params);
+    // console.log('req.user', req.user);
+    const userId = req.user._id.toHexString();
 
     try {
       const weekDates = getWeekDates(req.params.strDate);
       console.log('weekDates', weekDates);
       const dayFilters = getDayFiltersFromMonToSun(req.params.strDate);
-
-      // const dateFilter = getWeekFilterFromMonToSun(req.params.strDate);
-      const dateFilter = dayFilters[0];
-      // console.log('dateFilter', dateFilter);
-      const mon = new Date('2022-02-04');
-
-      const allMeals = await MealModel.find();
-
-      const dbMealsQuentin = allMeals.filter((meal) => {
-        return datesAreOnSameDay(mon, meal.date);
-      });
-
-      console.log('--- --- ', dbMealsQuentin);
-
-      // const monend = new Date(mon);
-      // monend.setDate(mon.getDate());
-      // monend.setUTCHours(23, 59, 59, 999);
-      // const testF = {
-      //   date: {
-      //     $gte: mon.toISOString(),
-      //     $lt: monend.toISOString(),
-      //   },
-      // };
-      // if (dateFilter) {
-      //   const dbMeals = await MealModel.find(testF)
-      //     .populate('type')
-      //     .populate({
-      //       path: 'foods',
-      //       populate: {
-      //         path: 'category',
-      //         model: 'Category',
-      //       },
-      //     })
-      //     .populate('user');
-      //   console.log('filter', dateFilter);
-      //   console.log('dbMeals', dbMeals);
-      //   res.status(200).json(dbMeals);
-      // } else {
-      //   throw new Error('Format de date invalide');
-      // }
 
       if (dayFilters.length) {
         const dbMeals = await Promise.all([
