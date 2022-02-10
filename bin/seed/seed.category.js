@@ -7,7 +7,7 @@ const categories = [
   {
     name: 'Boisson',
     order: 10,
-    color: 'crimson',
+    color: 'rosybrown',
   },
   {
     name: 'Ptidéj',
@@ -22,7 +22,7 @@ const categories = [
   {
     name: 'Plat',
     order: 40,
-    color: 'hotpink',
+    color: 'lightpink',
   },
   {
     name: 'Accompagnement',
@@ -37,7 +37,7 @@ const categories = [
   {
     name: 'Dessert',
     order: 70,
-    color: 'darkorchid',
+    color: 'plum',
   },
 ];
 
