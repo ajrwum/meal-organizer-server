@@ -10,6 +10,10 @@ const categorySchema = new Schema({
     required: true,
     unique: true,
   },
+  order: {
+    type: Number,
+    required: true,
+  }
 });
 
 module.exports = model('Category', categorySchema);
