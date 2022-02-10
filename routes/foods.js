@@ -20,15 +20,7 @@ router.get("/", (req, res, next) => {
         .populate('user')
         .then(dbRes => {
             console.log("sent data >>>", dbRes);
-            res.status(200).json(dbRes.sort((a, b) => a.category.order - b.category.order))
-            // .sort((a, b) => {
-            //     if (a.category.order - b.category.order === 0) {
-            //         return a.name.localeCompare(b.name)
-            //     }
-            //     else {
-            //         return 0
-            //     }
-            // })
+            res.status(200).json(dbRes.sort((a, b) => a.category.order - b.category.order || a.name.localeCompare(b.name)))
         })
         .catch(err => console.error(err));
 });
